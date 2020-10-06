@@ -1,13 +1,14 @@
-on: [push]
+name: CI
+on: [push, pull_request]
 
 jobs:
-  test:
-    name: Test
+  mix_test:
+    name: mix test (Elixir ${{ matrix.elixir }} OTP ${{ matrix.otp }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
         otp: [22.2]
-        elixir: [1.10.3]
+        elixir: [1.8.2, 1.9.3, 1.10.4]
 
     steps:
       - uses: actions/checkout@v2
@@ -28,7 +29,7 @@ jobs:
         with:
           path: _build
           key: ${{ runner.os }}-build-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
-          
+
       - name: Install Dependencies
         run: mix deps.get
 

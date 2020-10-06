@@ -5,7 +5,7 @@ defmodule Shortcode.MixProject do
     [
       app: :shortcode,
       version: "0.1.0",
-      elixir: "~> 1.10",
+      elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       description: description(),
       package: package(),
@@ -24,7 +24,7 @@ defmodule Shortcode.MixProject do
   defp deps do
     [
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
-      {:ecto, git: "https://github.com/elixir-ecto/ecto", branch: "master"}
+      {:ecto, "~> 3.5"}
     ]
   end
 
@@ -34,7 +34,7 @@ defmodule Shortcode.MixProject do
 
   defp package() do
     [
-      licenses: ["Apache-2.0"],
+      licenses: ["MIT"],
       links: %{"GitHub" => "https://github.com/elielhaouzi/shortcode"}
     ]
   end

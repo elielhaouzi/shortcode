@@ -2,15 +2,15 @@ if Code.ensure_loaded?(Ecto.ParameterizedType) do
   defmodule Shortcode.Ecto.ID do
     use Ecto.ParameterizedType
 
-    @spec type(any) :: :id
-    def type(_), do: :id
-
-    @spec init(keyword()) :: map()
+    @spec init(keyword) :: map
     def init(opts) do
       validate_opts!(opts)
 
       Enum.into(opts, %{})
     end
+
+    @spec type(any) :: :id
+    def type(_), do: :id
 
     @spec cast(binary, map) :: {:ok, integer}
     def cast(integer, _) when is_integer(integer) and integer >= 0, do: {:ok, integer}
@@ -30,14 +30,8 @@ if Code.ensure_loaded?(Ecto.ParameterizedType) do
 
     def load(_, _, _), do: :error
 
-    @spec dump(binary, any, map) :: {:ok, integer}
-    def dump(integer, _, _) when is_integer(integer) and integer >= 0, do: {:ok, integer}
-
-    def dump(shortcode, _, _) when is_binary(shortcode) and byte_size(shortcode) > 0 do
-      {:ok, Shortcode.to_integer(shortcode)}
-    end
-
-    def dump(_, _, _), do: :error
+    @spec dump(any, any, map) :: {:ok, integer} | :error
+    def dump(value, _dumper, params), do: cast(value, params)
 
     defp validate_opts!(opts) do
       prefix = opts |> Keyword.get(:prefix)

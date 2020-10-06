@@ -20,7 +20,7 @@ if Code.ensure_loaded?(Ecto.ParameterizedType) do
       Enum.into(opts, %{})
     end
 
-    @spec cast(binary, map) :: {:ok, uuid_string}
+    @spec cast(binary, map) :: {:ok, uuid_string} | :error
     def cast(<<_::288>> = uuid, _), do: {:ok, uuid}
 
     def cast(shortcode, _) when is_binary(shortcode) and byte_size(shortcode) > 0 do
@@ -38,20 +38,15 @@ if Code.ensure_loaded?(Ecto.ParameterizedType) do
 
     def load(_, _, _), do: :error
 
-    @spec dump(binary, any, map) :: {:ok, uuid_string}
-    def dump(<<_::288>> = uuid, _, _params), do: {:ok, uuid}
-
-    def dump(shortcode, _, _) when is_binary(shortcode) and byte_size(shortcode) > 0 do
-      {:ok, Shortcode.to_uuid(shortcode)}
-    end
-
-    def dump(_, _, _), do: :error
+    @spec dump(any, any, map) :: {:ok, uuid_string} | :error
+    def dump(value, _dumper, params), do: cast(value, params)
 
     @spec autogenerate(map) :: binary
     def autogenerate(params) do
       prefix = Map.get(params, :prefix)
-      uuid = Ecto.UUID.generate()
-      Shortcode.to_shortcode(uuid, prefix)
+
+      Ecto.UUID.generate()
+      |> Shortcode.to_shortcode(prefix)
     end
 
     defp validate_opts!(opts) do
