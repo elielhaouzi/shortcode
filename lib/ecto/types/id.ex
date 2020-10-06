@@ -19,6 +19,8 @@ if Code.ensure_loaded?(Ecto.ParameterizedType) do
       {:ok, Shortcode.to_integer(shortcode)}
     end
 
+    def cast(nil, %{autogenerate: true}), do: {:ok, nil}
+
     def cast(_, _), do: :error
 
     @spec load(integer, any, map) :: {:ok, binary}

@@ -41,6 +41,11 @@ defmodule Shortcode.Ecto.IDTest do
     test "with an invalid type returns an :error tuple" do
       assert :error = EctoTypeShortcodeID.cast("", %{})
     end
+
+    test "with nil" do
+      assert {:ok, nil} = EctoTypeShortcodeID.cast(nil, %{autogenerate: true})
+      assert :error = EctoTypeShortcodeID.cast(nil, %{autogenerate: false})
+    end
   end
 
   describe "load/1" do
