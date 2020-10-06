@@ -8,7 +8,7 @@ defmodule Shortcode.Ecto.UUIDTest do
     @primary_key {
       :id,
       EctoTypeShortcodeUUID,
-      prefix: "sch", autogenerate: {EctoTypeShortcodeUUID, :generate, []}
+      prefix: "sch", autogenerate: true
     }
     embedded_schema do
     end
