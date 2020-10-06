@@ -5,9 +5,7 @@ if Code.ensure_loaded?(Ecto.ParameterizedType) do
     """
     use Ecto.ParameterizedType
 
-    @typedoc """
-    A hex-encoded UUID string.
-    """
+    @typedoc "A hex-encoded UUID string."
     @type uuid_string :: <<_::288>>
 
     @spec type(any) :: :uuid
