@@ -14,29 +14,18 @@ defmodule Shortcode.Ecto.UUIDTest do
     end
   end
 
-  describe "cast/1" do
+  describe "cast/2" do
     test "when the prefix key is not set" do
       uuid = Ecto.UUID.generate()
       shortcode = uuid |> Shortcode.to_shortcode()
-      assert {:ok, ^uuid} = EctoTypeShortcodeUUID.cast(shortcode, %{})
+      assert {:ok, ^shortcode} = EctoTypeShortcodeUUID.cast(uuid, %{})
     end
 
     test "when the prefix key set" do
       uuid = Ecto.UUID.generate()
-      shortcode = uuid |> Shortcode.to_shortcode()
-      assert {:ok, ^uuid} = EctoTypeShortcodeUUID.cast(shortcode, %{prefix: "prefix"})
-    end
-
-    test "with a valid shortcode returns an :ok tuple" do
-      uuid = Ecto.UUID.generate()
-      shortcode = uuid |> Shortcode.to_shortcode()
-      assert {:ok, ^uuid} = EctoTypeShortcodeUUID.cast(shortcode, %{})
-    end
-
-    test "with a valid uuid_string returns an :ok tuple" do
-      uuid = Ecto.UUID.generate()
-
-      assert {:ok, ^uuid} = EctoTypeShortcodeUUID.cast(uuid, %{})
+      prefix = "prefix"
+      shortcode = uuid |> Shortcode.to_shortcode(prefix)
+      assert {:ok, ^shortcode} = EctoTypeShortcodeUUID.cast(uuid, %{prefix: prefix})
     end
 
     test "with an invalid shortcode returns an :error tuple" do
@@ -46,43 +35,69 @@ defmodule Shortcode.Ecto.UUIDTest do
     test "with an invalid type returns an :error tuple" do
       assert :error = EctoTypeShortcodeUUID.cast(1, %{})
     end
+
+    test "with nil" do
+      assert {:ok, nil} = EctoTypeShortcodeUUID.cast(nil, %{})
+    end
+
+    test "with a valid shortcode returns an :ok tuple" do
+      uuid = Ecto.UUID.generate()
+      shortcode = uuid |> Shortcode.to_shortcode()
+      assert {:ok, ^shortcode} = EctoTypeShortcodeUUID.cast(shortcode, %{})
+    end
+
+    test "with a valid uuid_string returns an :ok tuple" do
+      uuid = Ecto.UUID.generate()
+      shortcode = uuid |> Shortcode.to_shortcode()
+      assert {:ok, ^shortcode} = EctoTypeShortcodeUUID.cast(uuid, %{})
+    end
   end
 
-  describe "load/1" do
+  describe "load/3" do
     test "with a valid uuid without prefix returns an :ok tuple" do
       uuid = Ecto.UUID.generate()
       shortcode = uuid |> Shortcode.to_shortcode()
-      assert {:ok, ^shortcode} = EctoTypeShortcodeUUID.load(uuid, {}, %{})
+      assert {:ok, ^shortcode} = EctoTypeShortcodeUUID.load(uuid, fn -> :noop end, %{})
     end
 
     test "with a valid uuid with a prefix returns an :ok tuple" do
       prefix = "prefix"
       uuid = Ecto.UUID.generate()
       shortcode = uuid |> Shortcode.to_shortcode(prefix)
-      assert {:ok, ^shortcode} = EctoTypeShortcodeUUID.load(uuid, {}, %{prefix: prefix})
+
+      assert {:ok, ^shortcode} =
+               EctoTypeShortcodeUUID.load(uuid, fn -> :noop end, %{prefix: prefix})
     end
 
     test "with an invalid uuid returns an :error tuple" do
-      assert :error = EctoTypeShortcodeUUID.load(1, {}, %{})
+      assert :error = EctoTypeShortcodeUUID.load(1, fn -> :noop end, %{})
+    end
+
+    test "with nil returns an :ok nil tuple" do
+      assert {:ok, nil} = EctoTypeShortcodeUUID.load(nil, fn -> :noop end, %{})
     end
   end
 
-  describe "dump/1" do
+  describe "dump/3" do
     test "with an valid shortcode without prefix returns a uuid_string" do
       uuid = Ecto.UUID.generate()
       shortcode = uuid |> Shortcode.to_shortcode()
-      assert {:ok, ^uuid} = EctoTypeShortcodeUUID.dump(shortcode, {}, %{})
+      assert {:ok, ^uuid} = EctoTypeShortcodeUUID.dump(shortcode, fn -> :noop end, %{})
     end
 
     test "with an valid shortcode with prefix returns a uuid_string" do
       uuid = Ecto.UUID.generate()
       shortcode = uuid |> Shortcode.to_shortcode()
-      assert {:ok, ^uuid} = EctoTypeShortcodeUUID.dump(shortcode, {}, %{})
+      assert {:ok, ^uuid} = EctoTypeShortcodeUUID.dump(shortcode, fn -> :noop end, %{})
     end
 
     test "when the param is not valid returns an error" do
-      assert :error = EctoTypeShortcodeUUID.dump("", {}, %{})
-      assert :error = EctoTypeShortcodeUUID.dump(1, {}, %{})
+      assert :error = EctoTypeShortcodeUUID.dump("", fn -> :noop end, %{})
+      assert :error = EctoTypeShortcodeUUID.dump(1, fn -> :noop end, %{})
+    end
+
+    test "with nil returns a :ok nil tuple" do
+      assert {:ok, nil} = EctoTypeShortcodeUUID.dump(nil, fn -> :noop end, %{})
     end
   end
 end

@@ -12,28 +12,43 @@ if Code.ensure_loaded?(Ecto.ParameterizedType) do
     @spec type(any) :: :id
     def type(_), do: :id
 
-    @spec cast(binary, map) :: {:ok, integer}
-    def cast(integer, _) when is_integer(integer) and integer >= 0, do: {:ok, integer}
+    @spec cast(binary, map) :: {:ok, binary}
+    def cast(integer, params) when is_integer(integer) and integer >= 0 do
+      prefix = Map.get(params, :prefix)
 
-    def cast(shortcode, _) when is_binary(shortcode) and byte_size(shortcode) > 0 do
-      {:ok, Shortcode.to_integer(shortcode)}
+      {:ok, Shortcode.to_shortcode(integer, prefix)}
     end
 
-    def cast(nil, %{autogenerate: true}), do: {:ok, nil}
+    def cast(shortcode, _) when is_binary(shortcode) and byte_size(shortcode) > 0,
+      do: {:ok, shortcode}
+
+    def cast(nil, _), do: {:ok, nil}
 
     def cast(_, _), do: :error
 
-    @spec load(integer, any, map) :: {:ok, binary}
+    @spec load(integer, function, map) :: {:ok, binary | nil}
     def load(integer, _, params) when is_integer(integer) and integer >= 0 do
       prefix = Map.get(params, :prefix)
 
       {:ok, Shortcode.to_shortcode(integer, prefix)}
     end
 
+    def load(nil, _, _), do: {:ok, nil}
+
     def load(_, _, _), do: :error
 
-    @spec dump(any, any, map) :: {:ok, integer} | :error
-    def dump(value, _dumper, params), do: cast(value, params)
+    @spec dump(binary | non_neg_integer | nil, function, any) :: {:ok, integer | nil}
+    def dump(integer, _, _) when is_integer(integer) and integer >= 0,
+      do: {:ok, integer}
+
+    def dump(shortcode, _, _)
+        when is_binary(shortcode) and byte_size(shortcode) > 0 do
+      {:ok, Shortcode.to_integer(shortcode)}
+    end
+
+    def dump(nil, _, _), do: {:ok, nil}
+
+    def dump(_, _, _), do: :error
 
     defp validate_opts!(opts) do
       prefix = opts |> Keyword.get(:prefix)

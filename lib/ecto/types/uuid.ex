@@ -21,25 +21,41 @@ if Code.ensure_loaded?(Ecto.ParameterizedType) do
     end
 
     @spec cast(binary, map) :: {:ok, uuid_string} | :error
-    def cast(<<_::288>> = uuid, _), do: {:ok, uuid}
+    def cast(<<_::288>> = uuid, params) do
+      prefix = Map.get(params, :prefix)
 
-    def cast(shortcode, _) when is_binary(shortcode) and byte_size(shortcode) > 0 do
-      {:ok, Shortcode.to_uuid(shortcode)}
+      {:ok, Shortcode.to_shortcode(uuid, prefix)}
     end
+
+    def cast(shortcode, _) when is_binary(shortcode) and byte_size(shortcode) > 0,
+      do: {:ok, shortcode}
+
+    def cast(nil, _), do: {:ok, nil}
 
     def cast(_, _), do: :error
 
-    @spec load(uuid_string, any, map) :: {:ok, binary}
+    @spec load(uuid_string, function, map) :: {:ok, binary | nil}
     def load(<<_::288>> = uuid, _, params) do
       prefix = Map.get(params, :prefix)
 
       {:ok, Shortcode.to_shortcode(uuid, prefix)}
     end
 
+    def load(nil, _, _), do: {:ok, nil}
+
     def load(_, _, _), do: :error
 
-    @spec dump(any, any, map) :: {:ok, uuid_string} | :error
-    def dump(value, _dumper, params), do: cast(value, params)
+    @spec dump(any, function, map) :: {:ok, uuid_string | nil} | :error
+    def dump(<<_::288>> = uuid, _, _), do: {:ok, uuid}
+
+    def dump(shortcode, _, _)
+        when is_binary(shortcode) and byte_size(shortcode) > 0 do
+      {:ok, Shortcode.to_uuid(shortcode)}
+    end
+
+    def dump(nil, _, _), do: {:ok, nil}
+
+    def dump(_, _, _), do: :error
 
     @spec autogenerate(map) :: binary
     def autogenerate(params) do
