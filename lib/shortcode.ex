@@ -12,16 +12,21 @@ defmodule Shortcode do
 
   ## Examples
 
-    iex> Shortcode.to_shortcode(0)
-    "0"
-    iex> Shortcode.to_shortcode(61)
-    "Z"
-    iex> Shortcode.to_shortcode("00000000-0000-0000-0000-000000000000")
-    "0"
-    iex> Shortcode.to_shortcode("14366daa-c0f5-0f52-c9ec-e0a0b1e20006")
-    "C8IF9cqY1HP7GGslHNYLI"
-    iex> Shortcode.to_shortcode("14366daa-c0f5-0f52-c9ec-e0a0b1e20006", "prefix")
-    "prefix_C8IF9cqY1HP7GGslHNYLI"
+      iex> Shortcode.to_shortcode(0)
+      "0"
+
+      iex> Shortcode.to_shortcode(61)
+      "Z"
+
+      iex> Shortcode.to_shortcode("00000000-0000-0000-0000-000000000000")
+      "0"
+
+      iex> Shortcode.to_shortcode("14366daa-c0f5-0f52-c9ec-e0a0b1e20006")
+      "C8IF9cqY1HP7GGslHNYLI"
+
+      iex> Shortcode.to_shortcode("14366daa-c0f5-0f52-c9ec-e0a0b1e20006", "prefix")
+      "prefix_C8IF9cqY1HP7GGslHNYLI"
+
   """
   @spec to_shortcode(<<_::288>> | non_neg_integer, nil | binary) :: binary
   def to_shortcode(uuid, prefix \\ nil)
@@ -47,14 +52,17 @@ defmodule Shortcode do
 
   ## Examples
 
-    iex> Shortcode.to_uuid("")
-    ** (FunctionClauseError) no function clause matching in Shortcode.to_uuid/1
-    iex> Shortcode.to_uuid("0")
-    "00000000-0000-0000-0000-000000000000"
-    iex> Shortcode.to_uuid("C8IF9cqY1HP7GGslHNYLI")
-    "14366daa-c0f5-0f52-c9ec-e0a0b1e20006"
-    iex> Shortcode.to_uuid("prefix_C8IF9cqY1HP7GGslHNYLI")
-    "14366daa-c0f5-0f52-c9ec-e0a0b1e20006"
+      iex> Shortcode.to_uuid("")
+      ** (FunctionClauseError) no function clause matching in Shortcode.to_uuid/1
+
+      iex> Shortcode.to_uuid("0")
+      "00000000-0000-0000-0000-000000000000"
+
+      iex> Shortcode.to_uuid("C8IF9cqY1HP7GGslHNYLI")
+      "14366daa-c0f5-0f52-c9ec-e0a0b1e20006"
+
+      iex> Shortcode.to_uuid("prefix_C8IF9cqY1HP7GGslHNYLI")
+      "14366daa-c0f5-0f52-c9ec-e0a0b1e20006"
 
   """
   @spec to_uuid(binary) :: <<_::288>>
@@ -82,14 +90,18 @@ defmodule Shortcode do
 
   ## Examples
 
-    iex> Shortcode.to_integer("A")
-    36
-    iex> Shortcode.to_integer("0")
-    0
-    iex> Shortcode.to_integer("C8IF9cqY1HP7GGslHNYLI")
-    26867168257211004681214735068979920902
-    iex> Shortcode.to_integer("prefix_C8IF9cqY1HP7GGslHNYLI")
-    26867168257211004681214735068979920902
+      iex> Shortcode.to_integer("A")
+      36
+
+      iex> Shortcode.to_integer("0")
+      0
+
+      iex> Shortcode.to_integer("C8IF9cqY1HP7GGslHNYLI")
+      26867168257211004681214735068979920902
+
+      iex> Shortcode.to_integer("prefix_C8IF9cqY1HP7GGslHNYLI")
+      26867168257211004681214735068979920902
+
   """
   @spec to_integer(binary) :: integer
   def to_integer(shortcode) do
