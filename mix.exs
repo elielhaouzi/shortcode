@@ -2,11 +2,12 @@ defmodule Shortcode.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/elielhaouzi/shortcode"
+  @version "0.5.0"
 
   def project do
     [
       app: :shortcode,
-      version: "0.4.0",
+      version: @version,
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       description: description(),

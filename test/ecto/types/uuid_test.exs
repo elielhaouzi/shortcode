@@ -15,17 +15,38 @@ defmodule Shortcode.Ecto.UUIDTest do
   end
 
   describe "cast/2" do
-    test "when the prefix key is not set" do
+    test "with a hex-encoded uuid without a prefix, returns an {:ok, shortcode} tuple" do
       uuid = Ecto.UUID.generate()
-      shortcode = uuid |> Shortcode.to_shortcode()
+      shortcode = Shortcode.to_shortcode!(uuid)
       assert {:ok, ^shortcode} = EctoTypeShortcodeUUID.cast(uuid, %{})
     end
 
-    test "when the prefix key set" do
+    test "with a hex-encoded uuid with a prefix, returns an {:ok, shortcode} tuple" do
       uuid = Ecto.UUID.generate()
       prefix = "prefix"
-      shortcode = uuid |> Shortcode.to_shortcode(prefix)
+      shortcode = Shortcode.to_shortcode!(uuid, prefix)
       assert {:ok, ^shortcode} = EctoTypeShortcodeUUID.cast(uuid, %{prefix: prefix})
+    end
+
+    test "with a valid shortcode returns an :ok tuple" do
+      uuid = Ecto.UUID.generate()
+      shortcode = Shortcode.to_shortcode!(uuid)
+      assert {:ok, ^shortcode} = EctoTypeShortcodeUUID.cast(shortcode, %{})
+    end
+
+    test "with nil" do
+      assert {:ok, nil} = EctoTypeShortcodeUUID.cast(nil, %{})
+    end
+
+    test "with a shortcode that can't be converted back to a valid hex-encoded uuid, returns an :ok tuple" do
+      invalid_hex_encoded_uuid_shortcode = "7N42dgm5tFLK9N8MT7fHC8"
+
+      assert {:ok, ^invalid_hex_encoded_uuid_shortcode} =
+               EctoTypeShortcodeUUID.cast(invalid_hex_encoded_uuid_shortcode, %{})
+    end
+
+    test "with an invalid hex-encoded uuid, returns an error atom" do
+      assert :error = EctoTypeShortcodeUUID.cast("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaag", %{})
     end
 
     test "with an invalid shortcode returns an :error tuple" do
@@ -35,69 +56,79 @@ defmodule Shortcode.Ecto.UUIDTest do
     test "with an invalid type returns an :error tuple" do
       assert :error = EctoTypeShortcodeUUID.cast(1, %{})
     end
-
-    test "with nil" do
-      assert {:ok, nil} = EctoTypeShortcodeUUID.cast(nil, %{})
-    end
-
-    test "with a valid shortcode returns an :ok tuple" do
-      uuid = Ecto.UUID.generate()
-      shortcode = uuid |> Shortcode.to_shortcode()
-      assert {:ok, ^shortcode} = EctoTypeShortcodeUUID.cast(shortcode, %{})
-    end
-
-    test "with a valid uuid_string returns an :ok tuple" do
-      uuid = Ecto.UUID.generate()
-      shortcode = uuid |> Shortcode.to_shortcode()
-      assert {:ok, ^shortcode} = EctoTypeShortcodeUUID.cast(uuid, %{})
-    end
   end
 
   describe "load/3" do
-    test "with a valid uuid without prefix returns an :ok tuple" do
-      uuid = Ecto.UUID.generate()
-      shortcode = uuid |> Shortcode.to_shortcode()
-      assert {:ok, ^shortcode} = EctoTypeShortcodeUUID.load(uuid, fn -> :noop end, %{})
+    test "with a valid raw binary uuid without prefix returns an :ok tuple" do
+      raw_uuid = Ecto.UUID.bingenerate()
+      uuid = Ecto.UUID.cast!(raw_uuid)
+      shortcode = Shortcode.to_shortcode!(uuid)
+      assert {:ok, ^shortcode} = EctoTypeShortcodeUUID.load(raw_uuid, fn -> :noop end, %{})
     end
 
-    test "with a valid uuid with a prefix returns an :ok tuple" do
+    test "with a valid raw binary uuid with a prefix returns an :ok tuple" do
+      raw_uuid = Ecto.UUID.bingenerate()
+      uuid = Ecto.UUID.cast!(raw_uuid)
       prefix = "prefix"
-      uuid = Ecto.UUID.generate()
-      shortcode = uuid |> Shortcode.to_shortcode(prefix)
+      shortcode = Shortcode.to_shortcode!(uuid, prefix)
 
       assert {:ok, ^shortcode} =
-               EctoTypeShortcodeUUID.load(uuid, fn -> :noop end, %{prefix: prefix})
-    end
-
-    test "with an invalid uuid returns an :error tuple" do
-      assert :error = EctoTypeShortcodeUUID.load(1, fn -> :noop end, %{})
+               EctoTypeShortcodeUUID.load(raw_uuid, fn -> :noop end, %{prefix: prefix})
     end
 
     test "with nil returns an :ok nil tuple" do
       assert {:ok, nil} = EctoTypeShortcodeUUID.load(nil, fn -> :noop end, %{})
     end
+
+    test "with an hex-encoded uuid raises an ArgumentError" do
+      uuid = Ecto.UUID.generate()
+
+      assert_raise ArgumentError, fn ->
+        EctoTypeShortcodeUUID.load(uuid, fn -> :noop end, %{})
+      end
+    end
+
+    test "with an invalid data returns an :error tuple" do
+      assert :error = EctoTypeShortcodeUUID.load("", fn -> :noop end, %{})
+      assert :error = EctoTypeShortcodeUUID.load(1, fn -> :noop end, %{})
+    end
   end
 
   describe "dump/3" do
-    test "with an valid shortcode without prefix returns a uuid_string" do
-      uuid = Ecto.UUID.generate()
-      shortcode = uuid |> Shortcode.to_shortcode()
-      assert {:ok, ^uuid} = EctoTypeShortcodeUUID.dump(shortcode, fn -> :noop end, %{})
+    test "with a valid hex-encoded uuid without prefix, returns an :ok, raw_binary uuid tuple" do
+      raw_uuid = Ecto.UUID.bingenerate()
+      uuid = Ecto.UUID.cast!(raw_uuid)
+      assert {:ok, ^raw_uuid} = EctoTypeShortcodeUUID.dump(uuid, fn -> :noop end, %{})
     end
 
     test "with an valid shortcode with prefix returns a uuid_string" do
-      uuid = Ecto.UUID.generate()
-      shortcode = uuid |> Shortcode.to_shortcode()
-      assert {:ok, ^uuid} = EctoTypeShortcodeUUID.dump(shortcode, fn -> :noop end, %{})
+      raw_uuid = Ecto.UUID.bingenerate()
+      uuid = Ecto.UUID.cast!(raw_uuid)
+      assert {:ok, ^raw_uuid} = EctoTypeShortcodeUUID.dump(uuid, fn -> :noop end, %{})
     end
 
-    test "when the param is not valid returns an error" do
-      assert :error = EctoTypeShortcodeUUID.dump("", fn -> :noop end, %{})
-      assert :error = EctoTypeShortcodeUUID.dump(1, fn -> :noop end, %{})
+    test "with a valid shortcode, returns an :ok, raw_binary uuid tuple" do
+      raw_uuid = Ecto.UUID.bingenerate()
+      uuid = Ecto.UUID.cast!(raw_uuid)
+      shortcode = Shortcode.to_shortcode!(uuid)
+      assert {:ok, ^raw_uuid} = EctoTypeShortcodeUUID.dump(shortcode, fn -> :noop end, %{})
     end
 
     test "with nil returns a :ok nil tuple" do
       assert {:ok, nil} = EctoTypeShortcodeUUID.dump(nil, fn -> :noop end, %{})
+    end
+
+    test "with a shortcode that can't be converted back to a valid hex-encoded uuid, returns an :error" do
+      assert :error = EctoTypeShortcodeUUID.dump("7N42dgm5tFLK9N8MT7fHC8", fn -> :noop end, %{})
+    end
+
+    test "with raw binary uuid, returns an :error" do
+      assert :error = EctoTypeShortcodeUUID.dump(Ecto.UUID.bingenerate(), fn -> :noop end, %{})
+    end
+
+    test "when the data is not valid, returns an error" do
+      assert :error = EctoTypeShortcodeUUID.dump("", fn -> :noop end, %{})
+      assert :error = EctoTypeShortcodeUUID.dump(1, fn -> :noop end, %{})
     end
   end
 end
