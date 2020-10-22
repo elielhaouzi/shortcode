@@ -123,7 +123,10 @@ defmodule Shortcode.Ecto.UUIDTest do
     end
 
     test "with raw binary uuid, returns an :error" do
-      assert :error = EctoTypeShortcodeUUID.dump(Ecto.UUID.bingenerate(), fn -> :noop end, %{})
+      raw_uuid = Ecto.UUID.bingenerate()
+
+      assert not String.valid?(raw_uuid) &&
+               :error == EctoTypeShortcodeUUID.dump(raw_uuid, fn -> :noop end, %{})
     end
 
     test "when the data is not valid, returns an error" do
