@@ -1,8 +1,7 @@
 if Code.ensure_loaded?(Ecto.ParameterizedType) do
   defmodule Shortcode.Ecto.UUID do
-    @moduledoc """
-    An Ecto type for UUIDs shortcode with prefix.
-    """
+    @moduledoc false
+
     use Ecto.ParameterizedType
 
     @type t :: binary
