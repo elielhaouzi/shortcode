@@ -28,16 +28,16 @@ defmodule Shortcode.Ecto.IDTest do
       assert {:ok, "0"} = EctoTypeShortcodeID.cast(0, %{})
     end
 
+    test "with nil" do
+      assert {:ok, nil} = EctoTypeShortcodeID.cast(nil, %{})
+    end
+
     test "with an negative integer returns an :error tuple" do
       assert :error = EctoTypeShortcodeID.cast(-1, %{})
     end
 
     test "with an invalid type returns an :error tuple" do
       assert :error = EctoTypeShortcodeID.cast("", %{})
-    end
-
-    test "with nil" do
-      assert {:ok, nil} = EctoTypeShortcodeID.cast(nil, %{})
     end
   end
 
@@ -79,7 +79,9 @@ defmodule Shortcode.Ecto.IDTest do
       id = 0
       prefix = "prefix"
       shortcode = Shortcode.to_shortcode!(id, prefix)
-      assert {:ok, ^id} = EctoTypeShortcodeID.dump(shortcode, fn -> :noop end, %{})
+
+      assert {:ok, ^id} =
+               EctoTypeShortcodeID.dump(shortcode, fn -> :noop end, %{prefix: "prefix"})
     end
 
     test "with nil returns a :ok nil tuple" do
@@ -89,6 +91,12 @@ defmodule Shortcode.Ecto.IDTest do
     test "with invalid data returns :error" do
       assert :error = EctoTypeShortcodeID.dump(-1, fn -> :noop end, %{})
       assert :error = EctoTypeShortcodeID.dump("", fn -> :noop end, %{})
+    end
+
+    test "with a wrong prefix, returns an :error tuple" do
+      id = 0
+      shortcode = Shortcode.to_shortcode!(id, "foo")
+      assert :error = EctoTypeShortcodeID.dump(shortcode, fn -> :noop end, %{prefix: "bar"})
     end
   end
 end
