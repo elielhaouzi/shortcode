@@ -2,7 +2,7 @@ defmodule Shortcode.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/elielhaouzi/shortcode"
-  @version "0.5.0"
+  @version "0.6.0"
 
   def project do
     [
@@ -26,7 +26,8 @@ defmodule Shortcode.MixProject do
   defp deps do
     [
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
-      {:ecto, "~> 3.5"}
+      {:ecto, "~> 3.5"},
+      {:custom_base, "~> 0.2"}
     ]
   end
 

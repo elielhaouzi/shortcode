@@ -104,7 +104,11 @@ defmodule Shortcode.Ecto.UUIDTest do
     test "with an valid shortcode with prefix returns a uuid_string" do
       raw_uuid = Ecto.UUID.bingenerate()
       uuid = Ecto.UUID.cast!(raw_uuid)
-      assert {:ok, ^raw_uuid} = EctoTypeShortcodeUUID.dump(uuid, fn -> :noop end, %{})
+      prefix = "prefix"
+      shortcode = Shortcode.to_shortcode!(uuid, prefix)
+
+      assert {:ok, ^raw_uuid} =
+               EctoTypeShortcodeUUID.dump(shortcode, fn -> :noop end, %{prefix: prefix})
     end
 
     test "with a valid shortcode, returns an :ok, raw_binary uuid tuple" do
@@ -132,6 +136,11 @@ defmodule Shortcode.Ecto.UUIDTest do
     test "when the data is not valid, returns an error" do
       assert :error = EctoTypeShortcodeUUID.dump("", fn -> :noop end, %{})
       assert :error = EctoTypeShortcodeUUID.dump(1, fn -> :noop end, %{})
+    end
+
+    test "with a wrong prefix, returns an :error tuple" do
+      shortcode = Shortcode.to_shortcode!(Ecto.UUID.generate(), "foo")
+      assert :error = EctoTypeShortcodeUUID.dump(shortcode, fn -> :noop end, %{prefix: "bar"})
     end
   end
 end

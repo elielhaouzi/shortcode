@@ -17,11 +17,7 @@ if Code.ensure_loaded?(Ecto.ParameterizedType) do
     def type(_), do: :uuid
 
     @spec init(keyword) :: map
-    def init(opts) do
-      validate_opts!(opts)
-
-      Enum.into(opts, %{})
-    end
+    def init(opts), do: Enum.into(opts, %{})
 
     @spec cast(uuid() | nil, map) :: {:ok, t() | nil} | :error
     def cast(<<_::64, ?-, _::32, ?-, _::32, ?-, _::32, ?-, _::96>> = data, params) do
@@ -60,7 +56,9 @@ if Code.ensure_loaded?(Ecto.ParameterizedType) do
     end
 
     def dump(data, dumper, params) when is_binary(data) and byte_size(data) > 0 do
-      case Shortcode.to_uuid(data) do
+      prefix = Map.get(params, :prefix)
+
+      case Shortcode.to_uuid(data, prefix) do
         {:ok, uuid} -> dump(uuid, dumper, params)
         :error -> :error
       end
@@ -75,14 +73,6 @@ if Code.ensure_loaded?(Ecto.ParameterizedType) do
 
       Ecto.UUID.generate()
       |> Shortcode.to_shortcode!(prefix)
-    end
-
-    defp validate_opts!(opts) do
-      prefix = opts |> Keyword.get(:prefix)
-
-      if not is_nil(prefix) and String.contains?(prefix, Shortcode.prefix_separator()) do
-        raise ArgumentError, "prefix cannot contain \"#{Shortcode.prefix_separator()}\""
-      end
     end
   end
 end
