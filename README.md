@@ -12,7 +12,7 @@ by adding `shortcode` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:shortcode, "~> 0.6.0"}
+    {:shortcode, "~> 0.7.0"}
   ]
 end
 ```

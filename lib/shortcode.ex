@@ -88,26 +88,29 @@ defmodule Shortcode do
 
   ## Examples
 
-      iex> Shortcode.to_uuid("0")
-      {:ok, "00000000-0000-0000-0000-000000000000"}
+      # iex> Shortcode.to_uuid("0")
+      # {:ok, "00000000-0000-0000-0000-000000000000"}
 
-      iex> Shortcode.to_uuid("C8IF9cqY1HP7GGslHNYLI")
-      {:ok, "14366daa-c0f5-0f52-c9ec-e0a0b1e20006"}
+      # iex> Shortcode.to_uuid("C8IF9cqY1HP7GGslHNYLI")
+      # {:ok, "14366daa-c0f5-0f52-c9ec-e0a0b1e20006"}
 
       iex> Shortcode.to_uuid("prefix_C8IF9cqY1HP7GGslHNYLI", "prefix")
       {:ok, "14366daa-c0f5-0f52-c9ec-e0a0b1e20006"}
 
-      iex> Shortcode.to_uuid("foo_C8IF9cqY1HP7GGslHNYLI", "bar")
-      :error
+      # iex> Shortcode.to_uuid("pre_fix_C8IF9cqY1HP7GGslHNYLI", "pre_fix")
+      # {:ok, "14366daa-c0f5-0f52-c9ec-e0a0b1e20006"}
 
-      iex> Shortcode.to_uuid("7N42dgm5tFLK9N8MT7fHC8")
-      :error
+      # iex> Shortcode.to_uuid("foo_C8IF9cqY1HP7GGslHNYLI", "bar")
+      # :error
 
-      iex> Shortcode.to_uuid(Ecto.UUID.bingenerate())
-      :error
+      # iex> Shortcode.to_uuid("7N42dgm5tFLK9N8MT7fHC8")
+      # :error
 
-      iex> Shortcode.to_uuid("")
-      :error
+      # iex> Shortcode.to_uuid(Ecto.UUID.bingenerate())
+      # :error
+
+      # iex> Shortcode.to_uuid("")
+      # :error
 
   """
   @spec to_uuid(binary | any, binary | nil) :: {:ok, UUID.uuid()} | :error
@@ -136,10 +139,12 @@ defmodule Shortcode do
   end
 
   def to_uuid(shortcode, prefix) when is_binary(shortcode) do
+    prefix_with_separator = prefix <> @prefix_separator
+
     shortcode
-    |> String.split(@prefix_separator, parts: 2)
+    |> String.split_at(String.length(prefix_with_separator))
     |> case do
-      [^prefix, data] -> to_uuid(data, nil)
+      {^prefix_with_separator, data} -> to_uuid(data, nil)
       _ -> :error
     end
   end
