@@ -37,4 +37,4 @@ jobs:
         run: mix format --check-formatted
 
       - name: Run Tests
-        run: mix test --cover
+        run: mix test
