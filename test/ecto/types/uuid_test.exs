@@ -28,6 +28,16 @@ defmodule Shortcode.Ecto.UUIDTest do
       assert {:ok, ^shortcode} = EctoTypeShortcodeUUID.cast(uuid, %{prefix: prefix})
     end
 
+    test "with a hex-encoded uuid with a prefix and a separator, returns an {:ok, shortcode} tuple" do
+      uuid = Ecto.UUID.generate()
+      prefix = "prefix"
+      separator = "-"
+      shortcode = Shortcode.to_shortcode!(uuid, prefix, prefix_separator: separator)
+
+      assert {:ok, ^shortcode} =
+               EctoTypeShortcodeUUID.cast(uuid, %{prefix: prefix, separator: separator})
+    end
+
     test "with a valid shortcode returns an :ok tuple" do
       uuid = Ecto.UUID.generate()
       shortcode = Shortcode.to_shortcode!(uuid)
@@ -76,6 +86,20 @@ defmodule Shortcode.Ecto.UUIDTest do
                EctoTypeShortcodeUUID.load(raw_uuid, fn -> :noop end, %{prefix: prefix})
     end
 
+    test "with a valid raw binary uuid with a prefix and a separator returns an :ok tuple" do
+      raw_uuid = Ecto.UUID.bingenerate()
+      uuid = Ecto.UUID.cast!(raw_uuid)
+      prefix = "prefix"
+      separator = "-"
+      shortcode = Shortcode.to_shortcode!(uuid, prefix, prefix_separator: separator)
+
+      assert {:ok, ^shortcode} =
+               EctoTypeShortcodeUUID.load(raw_uuid, fn -> :noop end, %{
+                 prefix: prefix,
+                 separator: separator
+               })
+    end
+
     test "with nil returns an :ok nil tuple" do
       assert {:ok, nil} = EctoTypeShortcodeUUID.load(nil, fn -> :noop end, %{})
     end
@@ -109,6 +133,20 @@ defmodule Shortcode.Ecto.UUIDTest do
 
       assert {:ok, ^raw_uuid} =
                EctoTypeShortcodeUUID.dump(shortcode, fn -> :noop end, %{prefix: prefix})
+    end
+
+    test "with an valid shortcode with prefix and a separator returns a uuid_string" do
+      raw_uuid = Ecto.UUID.bingenerate()
+      uuid = Ecto.UUID.cast!(raw_uuid)
+      prefix = "prefix"
+      separator = "-"
+      shortcode = Shortcode.to_shortcode!(uuid, prefix, prefix_separator: separator)
+
+      assert {:ok, ^raw_uuid} =
+               EctoTypeShortcodeUUID.dump(shortcode, fn -> :noop end, %{
+                 prefix: prefix,
+                 separator: separator
+               })
     end
 
     test "with a valid shortcode, returns an :ok, raw_binary uuid tuple" do

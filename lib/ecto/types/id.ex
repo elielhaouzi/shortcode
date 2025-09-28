@@ -20,8 +20,9 @@ if Code.ensure_loaded?(Ecto.ParameterizedType) do
     @spec cast(t() | raw(), map) :: {:ok, t() | nil} | :error
     def cast(data, params) when is_integer(data) do
       prefix = Map.get(params, :prefix)
+      prefix_separator = Map.get(params, :separator)
 
-      Shortcode.to_shortcode(data, prefix)
+      Shortcode.to_shortcode(data, prefix, prefix_separator: prefix_separator)
     end
 
     def cast(data, _) when is_binary(data) and byte_size(data) > 0,
@@ -33,8 +34,9 @@ if Code.ensure_loaded?(Ecto.ParameterizedType) do
     @spec load(raw() | nil, function, map) :: {:ok, t() | nil} | :error
     def load(data, _, params) when is_integer(data) do
       prefix = Map.get(params, :prefix)
+      prefix_separator = Map.get(params, :separator)
 
-      Shortcode.to_shortcode(data, prefix)
+      Shortcode.to_shortcode(data, prefix, prefix_separator: prefix_separator)
     end
 
     def load(nil, _, _), do: {:ok, nil}
@@ -46,8 +48,9 @@ if Code.ensure_loaded?(Ecto.ParameterizedType) do
 
     def dump(data, _, params) when is_binary(data) and byte_size(data) > 0 do
       prefix = Map.get(params, :prefix)
+      prefix_separator = Map.get(params, :separator)
 
-      Shortcode.to_integer(data, prefix)
+      Shortcode.to_integer(data, prefix, prefix_separator: prefix_separator)
     end
 
     def dump(nil, _, _), do: {:ok, nil}
