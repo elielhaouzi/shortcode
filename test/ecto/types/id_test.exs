@@ -24,6 +24,16 @@ defmodule Shortcode.Ecto.IDTest do
       assert {:ok, ^shortcode} = EctoTypeShortcodeID.cast(id, %{prefix: prefix})
     end
 
+    test "with a valid shortcode with a prefix and a separator" do
+      id = 1
+      prefix = "prefix"
+      separator = "-"
+      shortcode = Shortcode.to_shortcode!(id, prefix, prefix_separator: separator)
+
+      assert {:ok, ^shortcode} =
+               EctoTypeShortcodeID.cast(id, %{prefix: prefix, separator: separator})
+    end
+
     test "with a valid integer returns an {:ok, shortcode} tuple" do
       assert {:ok, "0"} = EctoTypeShortcodeID.cast(0, %{})
     end
@@ -55,6 +65,19 @@ defmodule Shortcode.Ecto.IDTest do
       assert {:ok, ^shortcode} = EctoTypeShortcodeID.load(id, fn -> :noop end, %{prefix: prefix})
     end
 
+    test "with a valid integer with a prefix and a separator returns an :ok tuple" do
+      prefix = "prefix"
+      id = 0
+      separator = "-"
+      shortcode = Shortcode.to_shortcode!(id, prefix, prefix_separator: separator)
+
+      assert {:ok, ^shortcode} =
+               EctoTypeShortcodeID.load(id, fn -> :noop end, %{
+                 prefix: prefix,
+                 separator: separator
+               })
+    end
+
     test "with nil returns an :ok nil tuple" do
       assert {:ok, nil} = EctoTypeShortcodeID.load(nil, fn -> :noop end, %{})
     end
@@ -82,6 +105,19 @@ defmodule Shortcode.Ecto.IDTest do
 
       assert {:ok, ^id} =
                EctoTypeShortcodeID.dump(shortcode, fn -> :noop end, %{prefix: "prefix"})
+    end
+
+    test "with an valid shortcode with prefix and a separator returns a ok tuple with the raw data" do
+      id = 0
+      prefix = "prefix"
+      separator = "-"
+      shortcode = Shortcode.to_shortcode!(id, prefix, prefix_separator: separator)
+
+      assert {:ok, ^id} =
+               EctoTypeShortcodeID.dump(shortcode, fn -> :noop end, %{
+                 prefix: prefix,
+                 separator: separator
+               })
     end
 
     test "with nil returns a :ok nil tuple" do

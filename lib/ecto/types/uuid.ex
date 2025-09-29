@@ -21,8 +21,9 @@ if Code.ensure_loaded?(Ecto.ParameterizedType) do
     @spec cast(uuid() | nil, map) :: {:ok, t() | nil} | :error
     def cast(<<_::64, ?-, _::32, ?-, _::32, ?-, _::32, ?-, _::96>> = data, params) do
       prefix = Map.get(params, :prefix)
+      prefix_separator = Map.get(params, :separator)
 
-      Shortcode.to_shortcode(data, prefix)
+      Shortcode.to_shortcode(data, prefix, prefix_separator: prefix_separator)
     end
 
     def cast(data, _) when is_binary(data) and byte_size(data) > 0 do
@@ -35,8 +36,12 @@ if Code.ensure_loaded?(Ecto.ParameterizedType) do
     @spec load(raw() | nil, function, map) :: {:ok, t() | nil} | :error
     def load(<<_::128>> = uuid, _, params) do
       prefix = Map.get(params, :prefix)
+      prefix_separator = Map.get(params, :separator)
 
-      {:ok, uuid |> Ecto.UUID.cast!() |> Shortcode.to_shortcode!(prefix)}
+      {:ok,
+       uuid
+       |> Ecto.UUID.cast!()
+       |> Shortcode.to_shortcode!(prefix, prefix_separator: prefix_separator)}
     end
 
     def load(<<_::64, ?-, _::32, ?-, _::32, ?-, _::32, ?-, _::96>> = string, _, _) do
@@ -56,8 +61,9 @@ if Code.ensure_loaded?(Ecto.ParameterizedType) do
 
     def dump(data, dumper, params) when is_binary(data) and byte_size(data) > 0 do
       prefix = Map.get(params, :prefix)
+      prefix_separator = Map.get(params, :separator)
 
-      case Shortcode.to_uuid(data, prefix) do
+      case Shortcode.to_uuid(data, prefix, prefix_separator: prefix_separator) do
         {:ok, uuid} -> dump(uuid, dumper, params)
         :error -> :error
       end
@@ -69,9 +75,10 @@ if Code.ensure_loaded?(Ecto.ParameterizedType) do
     @spec autogenerate(map) :: t()
     def autogenerate(params) do
       prefix = Map.get(params, :prefix)
+      prefix_separator = Map.get(params, :separator)
 
       Ecto.UUID.generate()
-      |> Shortcode.to_shortcode!(prefix)
+      |> Shortcode.to_shortcode!(prefix, prefix_separator: prefix_separator)
     end
   end
 end

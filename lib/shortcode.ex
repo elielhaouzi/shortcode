@@ -16,6 +16,9 @@ defmodule Shortcode do
       iex> Shortcode.to_shortcode("14366daa-c0f5-0f52-c9ec-e0a0b1e20006", "prefix")
       {:ok, "prefix_C8IF9cqY1HP7GGslHNYLI"}
 
+      iex> Shortcode.to_shortcode("14366daa-c0f5-0f52-c9ec-e0a0b1e20006", "prefix", prefix_separator: "-")
+      {:ok, "prefix-C8IF9cqY1HP7GGslHNYLI"}
+
       iex> Shortcode.to_shortcode(0)
       {:ok, "0"}
 
@@ -42,9 +45,11 @@ defmodule Shortcode do
 
   """
   @spec to_shortcode(UUID.uuid() | non_neg_integer, nil | binary) :: {:ok, binary} | :error
-  def to_shortcode(data, prefix \\ nil)
+  def to_shortcode(data, prefix \\ nil, opts \\ [])
 
-  def to_shortcode(<<_::64, ?-, _::32, ?-, _::32, ?-, _::32, ?-, _::96>> = uuid, prefix) do
+  def to_shortcode(<<_::64, ?-, _::32, ?-, _::32, ?-, _::32, ?-, _::96>> = uuid, prefix, opts) do
+    prefix_separator = Keyword.get(opts, :prefix_separator) || prefix_separator()
+
     case Ecto.UUID.cast(uuid) do
       {:ok, uuid} ->
         shortcode =
@@ -53,7 +58,7 @@ defmodule Shortcode do
           |> String.to_integer(16)
           |> Base62.encode()
 
-        shortcode = if prefix, do: "#{prefix}#{@prefix_separator}#{shortcode}", else: shortcode
+        shortcode = if prefix, do: "#{prefix}#{prefix_separator}#{shortcode}", else: shortcode
 
         {:ok, shortcode}
 
@@ -62,22 +67,24 @@ defmodule Shortcode do
     end
   end
 
-  def to_shortcode(integer, prefix) when is_integer(integer) and integer >= 0 do
+  def to_shortcode(integer, prefix, opts) when is_integer(integer) and integer >= 0 do
+    prefix_separator = Keyword.get(opts, :prefix_separator) || prefix_separator()
+
     shortcode = integer |> Base62.encode()
 
-    shortcode = if prefix, do: "#{prefix}#{@prefix_separator}#{shortcode}", else: shortcode
+    shortcode = if prefix, do: "#{prefix}#{prefix_separator}#{shortcode}", else: shortcode
 
     {:ok, shortcode}
   end
 
-  def to_shortcode(_, _), do: :error
+  def to_shortcode(_, _, _), do: :error
 
   @doc """
   Same as `to_shortcode/2` but raises `ArgumentError` on invalid arguments.
   """
-  @spec to_shortcode!(any, nil | binary) :: binary
-  def to_shortcode!(data, prefix \\ nil) do
-    case to_shortcode(data, prefix) do
+  @spec to_shortcode!(any, nil | binary, keyword) :: binary
+  def to_shortcode!(data, prefix \\ nil, opts \\ []) do
+    case to_shortcode(data, prefix, opts) do
       {:ok, shortcode} -> shortcode
       :error -> raise ArgumentError, "cannot convert #{inspect(data)} to shortcode"
     end
@@ -88,35 +95,41 @@ defmodule Shortcode do
 
   ## Examples
 
-      # iex> Shortcode.to_uuid("0")
-      # {:ok, "00000000-0000-0000-0000-000000000000"}
+      iex> Shortcode.to_uuid("0")
+      {:ok, "00000000-0000-0000-0000-000000000000"}
 
-      # iex> Shortcode.to_uuid("C8IF9cqY1HP7GGslHNYLI")
-      # {:ok, "14366daa-c0f5-0f52-c9ec-e0a0b1e20006"}
+      iex> Shortcode.to_uuid("C8IF9cqY1HP7GGslHNYLI")
+      {:ok, "14366daa-c0f5-0f52-c9ec-e0a0b1e20006"}
 
       iex> Shortcode.to_uuid("prefix_C8IF9cqY1HP7GGslHNYLI", "prefix")
       {:ok, "14366daa-c0f5-0f52-c9ec-e0a0b1e20006"}
 
-      # iex> Shortcode.to_uuid("pre_fix_C8IF9cqY1HP7GGslHNYLI", "pre_fix")
-      # {:ok, "14366daa-c0f5-0f52-c9ec-e0a0b1e20006"}
+      iex> Shortcode.to_uuid("pre_fix_C8IF9cqY1HP7GGslHNYLI", "pre_fix")
+      {:ok, "14366daa-c0f5-0f52-c9ec-e0a0b1e20006"}
 
-      # iex> Shortcode.to_uuid("foo_C8IF9cqY1HP7GGslHNYLI", "bar")
-      # :error
+      iex> Shortcode.to_uuid("prefix-C8IF9cqY1HP7GGslHNYLI", "prefix", prefix_separator: "-")
+      {:ok, "14366daa-c0f5-0f52-c9ec-e0a0b1e20006"}
 
-      # iex> Shortcode.to_uuid("7N42dgm5tFLK9N8MT7fHC8")
-      # :error
+      iex> Shortcode.to_uuid("foo_C8IF9cqY1HP7GGslHNYLI", "bar")
+      :error
 
-      # iex> Shortcode.to_uuid(Ecto.UUID.bingenerate())
-      # :error
+      iex> Shortcode.to_uuid("foo_C8IF9cqY1HP7GGslHNYLI", "foo", prefix_separator: "-")
+      :error
 
-      # iex> Shortcode.to_uuid("")
-      # :error
+      iex> Shortcode.to_uuid("7N42dgm5tFLK9N8MT7fHC8")
+      :error
+
+      iex> Shortcode.to_uuid(Ecto.UUID.bingenerate())
+      :error
+
+      iex> Shortcode.to_uuid("")
+      :error
 
   """
   @spec to_uuid(binary | any, binary | nil) :: {:ok, UUID.uuid()} | :error
-  def to_uuid(shortcode, prefix \\ nil)
+  def to_uuid(shortcode, prefix \\ nil, opts \\ [])
 
-  def to_uuid(shortcode, nil) when is_binary(shortcode) and byte_size(shortcode) > 0 do
+  def to_uuid(shortcode, nil, []) when is_binary(shortcode) and byte_size(shortcode) > 0 do
     with {:ok, int_shortcode} <- Base62.decode(shortcode),
          hex_shortcode <- Integer.to_string(int_shortcode, 16),
          {:valid_length?, true} <- {:valid_length?, String.length(hex_shortcode) <= 32} do
@@ -138,25 +151,27 @@ defmodule Shortcode do
     end
   end
 
-  def to_uuid(shortcode, prefix) when is_binary(shortcode) do
-    prefix_with_separator = prefix <> @prefix_separator
+  def to_uuid(shortcode, prefix, opts) when is_binary(shortcode) do
+    prefix_separator = Keyword.get(opts, :prefix_separator) || prefix_separator()
+    prefix_with_separator = if prefix, do: prefix <> prefix_separator, else: ""
 
     shortcode
     |> String.split_at(String.length(prefix_with_separator))
     |> case do
-      {^prefix_with_separator, data} -> to_uuid(data, nil)
+      {^prefix_with_separator, ""} -> :error
+      {^prefix_with_separator, data} -> to_uuid(data, nil, [])
       _ -> :error
     end
   end
 
-  def to_uuid(_, _), do: :error
+  def to_uuid(_, _, _), do: :error
 
   @doc """
   Same as `to_uuid/1` but raises `ArgumentError` on invalid arguments.
   """
-  @spec to_uuid!(binary, binary | nil) :: UUID.uuid()
-  def to_uuid!(shortcode, prefix \\ nil) do
-    case to_uuid(shortcode, prefix) do
+  @spec to_uuid!(binary, binary | nil, keyword) :: UUID.uuid()
+  def to_uuid!(shortcode, prefix \\ nil, opts \\ []) do
+    case to_uuid(shortcode, prefix, opts) do
       {:ok, uuid} -> uuid
       :error -> raise ArgumentError, "cannot convert shortcode #{inspect(shortcode)} to uuid"
     end
@@ -179,6 +194,9 @@ defmodule Shortcode do
       iex> Shortcode.to_integer("prefix_C8IF9cqY1HP7GGslHNYLI", "prefix")
       {:ok, 26867168257211004681214735068979920902}
 
+      iex> Shortcode.to_integer("prefix-C8IF9cqY1HP7GGslHNYLI", "prefix", prefix_separator: "-")
+      {:ok, 26867168257211004681214735068979920902}
+
       iex> Shortcode.to_integer("foo_C8IF9cqY1HP7GGslHNYLI", "bar")
       :error
 
@@ -190,9 +208,9 @@ defmodule Shortcode do
 
   """
   @spec to_integer(binary, binary | nil) :: {:ok, integer} | :error
-  def to_integer(shortcode, prefix \\ nil)
+  def to_integer(shortcode, prefix \\ nil, opts \\ [])
 
-  def to_integer(shortcode, nil) when is_binary(shortcode) do
+  def to_integer(shortcode, nil, _) when is_binary(shortcode) do
     try do
       Base62.decode!(shortcode)
     rescue
@@ -202,23 +220,25 @@ defmodule Shortcode do
     end
   end
 
-  def to_integer(shortcode, prefix) when is_binary(shortcode) do
+  def to_integer(shortcode, prefix, opts) when is_binary(shortcode) do
+    prefix_separator = Keyword.get(opts, :prefix_separator) || prefix_separator()
+
     shortcode
-    |> String.split(@prefix_separator, parts: 2)
+    |> String.split(prefix_separator, parts: 2)
     |> case do
-      [^prefix, data] -> to_integer(data, nil)
+      [^prefix, data] -> to_integer(data, nil, opts)
       _ -> :error
     end
   end
 
-  def to_integer(_, _), do: :error
+  def to_integer(_, _, _), do: :error
 
   @doc """
   Same as `to_integer/1` but raises `ArgumentError` on invalid arguments.
   """
-  @spec to_integer!(binary, binary | nil) :: integer
-  def to_integer!(shortcode, prefix) do
-    case to_integer(shortcode, prefix) do
+  @spec to_integer!(binary, binary | nil, keyword) :: integer
+  def to_integer!(shortcode, prefix, opts) do
+    case to_integer(shortcode, prefix, opts) do
       {:ok, integer} -> integer
       :error -> raise ArgumentError, "cannot convert shortcode #{inspect(shortcode)} to integer"
     end
@@ -226,5 +246,7 @@ defmodule Shortcode do
 
   @doc false
   @spec prefix_separator :: binary
-  def prefix_separator(), do: @prefix_separator
+  def prefix_separator() do
+    Application.get_env(:shortcode, :prefix_separator, @prefix_separator)
+  end
 end
